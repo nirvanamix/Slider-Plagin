@@ -1,12 +1,11 @@
-class SliderPlagin {
+class SliderPlugin {
     constructor(selector, options) {
         const defatulOptions = {
-            min: 0,
-            max: 100,
-			// values: 50,
-			values: [ 20, 40],
+            min:1,
+            max: 10,
+			values: 5, // number or array simpe: [5, 10]
             step: 0.01,
-			roundValue: 2
+			charactersAfterDot: 2, // toFixed
         }
         this.options = Object.assign(defatulOptions, options);
         this.$selector = (selector.tagName !== undefined) ? selector : document.querySelector(selector); // check selector is a teg, or simple name class or, id;
@@ -14,9 +13,15 @@ class SliderPlagin {
 		this.#startingInfo(); // basic layout
 		this.#eventMousemove(); // event mousemove	
 	}
+	static getInstance(selector, options) { // patern "Singleton"
+		if (!this.instance) {
+			this.instance = new SliderPlugin(selector, options);
+		}
+		return this.instance;
+	}
     #renderInSelector(){
 		const sliderHTML = (Array.isArray(this.options.values) == true) ? `<div class='slider-circle slider-min'></div><div class='slider-circle slider-max'></div>` : `<div class='slider-circle slider-single'></div>`;
-		this.$selector.insertAdjacentHTML('afterbegin', `<div class="slider-block">${sliderHTML} <div class='progress-slider'></div> </div>`);
+		this.$selector.insertAdjacentHTML('afterbegin', `<div class="slider-block">${sliderHTML}<div class='wr-progress-slider'><div class='progress-slider'></div></div></div>`);
     }
 	#startingInfo(){
 		this.#recordInInput.call(this, this.options.values); // record information in input
@@ -24,13 +29,21 @@ class SliderPlagin {
 	}
 	#recordInInput(values){
 		if (Array.isArray(this.options.values) == true){
-			this.$selector.querySelectorAll('input')[0].value = values[0];
-				this.$selector.querySelectorAll('input')[0].setAttribute('value', values[0]);
-			this.$selector.querySelectorAll('input')[1].value = values[1];
-				this.$selector.querySelectorAll('input')[1].setAttribute('value', values[1]);
+			if (this.$selector.querySelectorAll('input')[1] == undefined){
+				this.#errorMassage(`!!!Not found input, please add two input in inner ${ this.$selector }. Simple: <label class="${ this.$selector }"><input type="text"><input type="text"></label>`);
+				return false
+			}
+			this.$selector.querySelectorAll('input')[0].value = values[0].toFixed(this.options.charactersAfterDot);
+				this.$selector.querySelectorAll('input')[0].setAttribute('value', values[0].toFixed(this.options.charactersAfterDot) );
+			this.$selector.querySelectorAll('input')[1].value = values[1].toFixed(this.options.charactersAfterDot);
+				this.$selector.querySelectorAll('input')[1].setAttribute('value', values[1].toFixed(this.options.charactersAfterDot) );
 		} else{
-			this.$selector.querySelectorAll('input')[0].value = values;
-				this.$selector.querySelectorAll('input')[0].setAttribute('value', values);
+			if (this.$selector.querySelectorAll('input')[0] == undefined) {
+				this.#errorMassage(`!!!Not found input, please add two input in inner ${this.$selector}. Simple: <label class="${this.$selector}"><input type="text"></label>`);
+				return false
+			}
+			this.$selector.querySelectorAll('input')[0].value = values.toFixed(this.options.charactersAfterDot);
+			this.$selector.querySelectorAll('input')[0].setAttribute('value', values.toFixed(this.options.charactersAfterDot));
 		}
 	}
 	#positionSlider(values){
@@ -51,13 +64,16 @@ class SliderPlagin {
 	}
 	#eventMousemove(){
 		const functionEventMove = (down, move, up) => {
-			this.$selector.querySelectorAll('.slider-circle').forEach((el) => {
+			this.$selector.querySelectorAll('.slider-circle').forEach((el, ind, arr) => {
 				el.addEventListener(down, (eventElement) => {
+					for (let i = 0; i < arr.length;  i++) (i == ind) ? arr[i].style.zIndex = '2' : arr[i].style.zIndex = null; // add z-index for active slider
+					eventElement.target.classList.add('focus');
+					let oldx = 0
 					this.refFunction = (eventMouse) => {
-						// code hear
-						this.moveSlider.call(this, this, eventElement, eventMouse);
+						this.#moveSlider.call(this, eventElement, eventMouse);
 					}
 					this.destroy = () => {
+						eventElement.target.classList.remove('focus');
 						document.querySelector('html').removeEventListener(move, this.refFunction);
 						document.querySelector('html').removeEventListener(up, this.destroy);
 					}
@@ -68,45 +84,53 @@ class SliderPlagin {
 		}
 		functionEventMove('mousedown', 'mousemove', 'mouseup'); // for mouse
 		functionEventMove('touchstart', 'touchmove', 'touchend'); // for touch scrinn
-		
 	}
-	moveSlider(th, eventElement, eventMouse){
+	#moveSlider(eventElement, eventMouse){
 		const mousePosition = eventMouse.pageX;
-		const positionDiv = eventElement.target.closest(`.${th.$selector.className}`).getBoundingClientRect().left;
-		const widthDiv = eventElement.target.closest(`.${th.$selector.className}`).offsetWidth;
+		const positionDiv = this.$selector.getBoundingClientRect().left;
+		const widthDiv = this.$selector.offsetWidth;
+		let circlePosition = (mousePosition - positionDiv) / widthDiv;
+		(circlePosition <= 0) && (circlePosition = 0);
+		(circlePosition >= 1) && (circlePosition = 1);
 		if (Array.isArray(this.options.values) == true) {
-			console.log(eventElement);
-			th.#positionSlider([10, 70])
+			const arrValue = this.options.values;
+			const positionSlider = (value_1 = arrValue[0], value_2 = arrValue[1]) => [value_1, value_2]
+			let value = this.options.min + (circlePosition * (this.options.max - this.options.min));
+			if (eventElement.target.classList.contains('slider-min') == true && eventElement.target.classList.contains('focus') == true){
+				arrValue[0] = value;
+				(arrValue[0] >= arrValue[1]  ) && (arrValue[0] = arrValue[1]); // if value 1 is more than value 2
+				this.#positionSlider.bind(this)(arrValue); // slider move
+				this.#recordInInput.bind(this)(arrValue); // record value in input
+			} else{
+				arrValue[1] = value;
+				(arrValue[1] <= arrValue[0]) && (arrValue[1] = arrValue[0]); // if value 2 is less than value 2
+				this.#positionSlider.bind(this)(arrValue); // slider move
+				this.#recordInInput.bind(this)(arrValue); // record value in input
+			}
 		} else{
-			let circlePosition = (mousePosition - positionDiv) / widthDiv;
-			(circlePosition <= 0) && (circlePosition = 0);
-			(circlePosition >= 1) && (circlePosition = 1);
-			const value = th.options.min + (circlePosition * (th.options.max - th.options.min));
-			this.#positionSlider.bind(th)(value);
-			const valueWithStep = (Math.round(value / th.options.step) * th.options.step).toFixed(th.options.roundValue)
-			this.#recordInInput.bind(th)(valueWithStep);
+			const value = this.options.min + (circlePosition * (this.options.max - this.options.min));
+			this.#positionSlider.bind(this)(value);
+			const valueWithStep = (Math.round(value / this.options.step) * this.options.step);
+			this.#recordInInput.bind(this)(valueWithStep);
 		}
-	
-		
 	}
-
-
-
-
-
-
-
-
-
+	#errorMassage(textError){
+		console.error(textError);
+	}
+	destroy() {
+		this.$selector.querySelector('.slider-block').remove();
+	}
 }
 
-
-
-
-
-
-document.querySelectorAll('.sliderPlagin').forEach((e) => {
-    const callSliderPlagin = new SliderPlagin(e, {})
+SliderPlugin.getInstance('.sliderPlugin', {}); // use patern Singleton
+new SliderPlugin('.sliderPlugin_2', { // create new class
+	min: 1,
+	max: 500,
+	values: [100, 300],
+	step: 10,
+	charactersAfterDot: 0, // toFixed
 });
+
+
 
 
