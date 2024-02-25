@@ -1,0 +1,124 @@
+/*
+	Попробувати верстати за допомогою vw широкоформатні макети
+	приклад можна подивитися тут https://lexusux.sorrytesting.mcdir.ru/
+	0.52vw = 10px формула (10/19.2) це для ширини 1920px
+	де:
+	19.2 - це 1% від ширини екрану 1920px
+	10 - це скільки px  потрібно получити
+*/
+html,
+body {
+    font-size: 0.52vw;
+    font-size: 10px;
+}
+body {
+    font-family: 'Roboto', sans-serif;
+    min-height: -webkit-fill-available; // для того щоб в safari не було скролу якщо задано min-height: 100vh;
+    background-color: $color-main;
+}
+ul, ol, p {
+    font-size: 1.6rem;
+    line-height: 1.4em;
+    margin-bottom: 2rem;
+}
+ul, ol {
+    padding-left: 1.5rem;
+    li {
+        margin-bottom: 0.7rem;
+    }
+}
+ul {
+    li {
+        list-style: disc;
+    }
+}
+ol {
+    li {
+        list-style: decimal;
+    }
+}
+
+
+
+// simple style
+// для нормального скролу в safari
+.modal-window {
+    -webkit-overflow-scrolling: touch;
+    -moz-overflow-scrolling: touch;
+}
+// для кнопок в safari
+.button {
+
+    input,
+    button {
+        -webkit-appearance: none;
+    }
+}
+.wrapper{ // flex-grow: 1; - щоб прижати футер до нижзу
+    display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        main{
+            flex-grow: 1;
+        }
+}
+.container{
+    max-width: 110rem;
+}
+
+
+.sliderPlagin{
+    margin: 2rem;
+    max-width: 40rem;
+    user-select: none;
+    display: block;
+    position: relative;
+    *{
+        user-select: none;;
+    }
+    .slider-block{
+        width: 100%;
+        height: 0.5rem;
+        margin-bottom: 2rem;
+        background-color: #000;
+        position: relative;
+    }
+    .slider-circle{
+        width: 2rem;
+        height: 2rem;
+        margin-left: 0rem;
+        background-color: #f00;
+        border-radius: 50%;
+        position: absolute;
+        top: -0.9rem;
+        left: 0;
+        margin-left: -1rem;
+        cursor: pointer;
+        z-index: 1;
+    }
+    .progress-slider{
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: #f00;
+        // display: none;
+        opacity: 0.7;
+    }
+}
+
+
+
+.block{
+    width:  20rem;
+    height: 20rem;
+    background: #f00;
+    margin: 2rem;
+}
+
+
+
+
+
+

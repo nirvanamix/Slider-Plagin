@@ -1,0 +1,11 @@
+@import "variables.scss";
+@import "./fonts.scss";
+@import "./default-style.scss";
+@import "./plugins.scss";
+@import "./main.scss";
+@media (max-width: 992px) {
+    @import "./992.scss";
+}
+@media (max-width: 480px) {
+    @import "./480.scss";
+}
